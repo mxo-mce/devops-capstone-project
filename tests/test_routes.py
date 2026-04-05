@@ -12,20 +12,13 @@ from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
 from service.routes import app
-<<<<<<< HEAD
 from service import talisman
-=======
-
->>>>>>> 76e392f86073dd4abdb26421cd11c8019c16035e
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 BASE_URL = "/accounts"
-<<<<<<< HEAD
 HTTPS_ENVIRON = {'wsgi.url_scheme': 'https'}
-=======
->>>>>>> 76e392f86073dd4abdb26421cd11c8019c16035e
 
 
 ######################################################################
@@ -42,10 +35,7 @@ class TestAccountService(TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         init_db(app)
-<<<<<<< HEAD
         talisman.force_https = False
-=======
->>>>>>> 76e392f86073dd4abdb26421cd11c8019c16035e
 
     @classmethod
     def tearDownClass(cls):
@@ -136,7 +126,6 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ADD YOUR TEST CASES HERE ...
-<<<<<<< HEAD
     def test_security_headers(self):
         """It should return security headers"""
         response = self.client.get('/', environ_overrides=HTTPS_ENVIRON)
@@ -156,23 +145,3 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Check for the CORS header
         self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), '*')
-=======
-    def test_get_account(self):
-        """It should Read a single Account"""
-        account = self._create_accounts(1)[0]
-        resp = self.client.get(
-            f"{BASE_URL}/{account.id}", content_type="application/json"
-        )
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(data["name"], account.name)
-
-    def test_get_account_not_found(self):
-        """It should not Read an Account that is not found"""
-        resp = self.client.get(f"{BASE_URL}/0")
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-    def test_method_not_allowed(self):
-        """It should not allow an illegal method call"""
-        resp = self.client.put(BASE_URL, json={"name": "not allowed"})
-        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)    
->>>>>>> 76e392f86073dd4abdb26421cd11c8019c16035e
