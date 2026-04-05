@@ -22,7 +22,7 @@ spec:
       runAfter:
         - init
       workspaces:
-        - name: source
+        - name: output  # <--- Change this from 'source'
           workspace: pipeline-workspace
       taskRef:
         name: git-clone
