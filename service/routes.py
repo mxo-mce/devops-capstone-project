@@ -100,3 +100,8 @@ def check_content_type(media_type):
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content-Type must be {media_type}",
     )
+######################################################################
+# Initialize Talisman and CORS
+######################################################################
+Talisman(app)
+CORS(app)
