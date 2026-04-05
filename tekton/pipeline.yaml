@@ -38,15 +38,24 @@ spec:
         - init
 
     - name: lint
+      taskRef:
+        name: flake8
+      runAfter:
+        - clone
       workspaces:
         - name: source
           workspace: pipeline-workspace
-      taskRef:
-        name: flake8
       params:
         - name: image
           value: "python:3.9-slim"
         - name: args
           value: ["--count","--max-complexity=10","--max-line-length=127","--statistics"]
+
+    - name: tests
+      taskRef:
+        name: nose
       runAfter:
-        - clone
+        - lint
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
