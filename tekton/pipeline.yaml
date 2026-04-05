@@ -1,12 +1,6 @@
-#
-# This pipeline needs the following tasks from Tekton Catalog
-#   - git-clone
-#   - flake8
-#
----
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
-metadata:  
+metadata:
   name: cd-pipeline
 spec:
   workspaces:
@@ -14,7 +8,8 @@ spec:
   params:
     - name: repo-url
     - name: branch
-      default: main
+      default: "main"
+    - name: build-image
   tasks:
     - name: init
       workspaces:
@@ -24,8 +19,10 @@ spec:
         name: cleanup
 
     - name: clone
+      runAfter:
+        - init
       workspaces:
-        - name: output
+        - name: source
           workspace: pipeline-workspace
       taskRef:
         name: git-clone
@@ -34,8 +31,6 @@ spec:
           value: $(params.repo-url)
         - name: revision
           value: $(params.branch)
-      runAfter:
-        - init
 
     - name: lint
       taskRef:
@@ -55,7 +50,45 @@ spec:
       taskRef:
         name: nose
       runAfter:
-        - lint
+        - clone
       workspaces:
         - name: source
           workspace: pipeline-workspace
+      params:
+        - name: database_uri
+          value: "sqlite:///test.db"
+        - name: args
+          value: "-v --with-spec --spec-color"
+
+    - name: build
+      taskRef:
+        name: buildah
+        kind: ClusterTask
+      runAfter:
+        - lint
+        - tests
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      params:
+        - name: IMAGE
+          value: "$(params.build-image)"
+
+    - name: deploy
+      workspaces:
+        - name: manifest-dir
+          workspace: pipeline-workspace
+      taskRef:
+        name: openshift-client
+        kind: ClusterTask
+      runAfter:
+        - build
+      params:
+        - name: SCRIPT
+          value: |
+            echo "Updating manifest..."
+            sed -i "s|IMAGE_NAME_HERE|$(params.build-image)|g" deploy/deployment.yaml
+            cat deploy/deployment.yaml
+            echo "Deploying to OpenShift..."
+            oc apply -f deploy/
+            oc get pods -l app=accounts
