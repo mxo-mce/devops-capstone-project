@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: flake8
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: image
+      type: string
+      default: "python:3.9-slim"
+    - name: args
+      type: array
+      default: ["--count", "--max-complexity=10", "--max-line-length=127", "--statistics"]
+  steps:
+    - name: flake8
+      image: $(params.image)
+      workingDir: $(workspaces.source.path)
+      script: |
+        set -e
+        pip install flake8
+        flake8 . "$@"
+      args: ["$(params.args[*])"]
